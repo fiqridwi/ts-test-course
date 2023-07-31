@@ -49,8 +49,61 @@ describe("Login component tests", () => {
 		act(() => {
 			user.click(loginButton);
 		});
-
 		const resultLabel = screen.getByTestId("resultLabel");
 		expect(resultLabel.textContent).toBe("UserName and password required!");
+	});
+	it("right credetentials - successful login - with user calls", async () => {
+		loginServiceMock.login.mockResolvedValueOnce("1234");
+		const inputs = container.querySelectorAll("input");
+		const userNameInput = inputs[0];
+		const passwordInput = inputs[1];
+		const loginButton = inputs[2];
+
+		act(() => {
+			user.click(userNameInput);
+			user.keyboard("someUser");
+
+			user.click(passwordInput);
+			user.keyboard("somePassword");
+
+			user.click(loginButton);
+		});
+
+		expect(loginServiceMock.login).toBeCalledWith("someUser", "somePassword");
+
+		// fireEvent.change(userNameInput, { target: { value: "someUser" } });
+		// fireEvent.change(passwordInput, { target: { value: "somePassword" } });
+		// fireEvent.click(loginButton);
+
+		const resultLabel = await screen.findByTestId("resultLabel");
+		expect(resultLabel.textContent).toBe("successful login");
+	});
+	it("invalid credetentials - unsuccessful login - with user calls", async () => {
+		const result = Promise.resolve(undefined);
+		loginServiceMock.login.mockResolvedValueOnce(result);
+		const inputs = container.querySelectorAll("input");
+		const userNameInput = inputs[0];
+		const passwordInput = inputs[1];
+		const loginButton = inputs[2];
+
+		act(() => {
+			user.click(userNameInput);
+			user.keyboard("someUser");
+
+			user.click(passwordInput);
+			user.keyboard("somePassword");
+
+			user.click(loginButton);
+		});
+		await result;
+
+		expect(loginServiceMock.login).toBeCalledWith("someUser", "somePassword");
+
+		// fireEvent.change(userNameInput, { target: { value: "someUser" } });
+		// fireEvent.change(passwordInput, { target: { value: "somePassword" } });
+		// fireEvent.click(loginButton);
+
+		const resultLabel = await screen.findByTestId("resultLabel");
+		expect(resultLabel.textContent).toBe("invalid credentials");
 	});
 });
